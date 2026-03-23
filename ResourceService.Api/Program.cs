@@ -65,6 +65,12 @@ builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ResourceDbContext>();
+    dbContext.Database.Migrate();
+}
+
 var pathBase = configuration["ASPNETCORE_PATHBASE"];
 if (!string.IsNullOrWhiteSpace(pathBase))
 {
