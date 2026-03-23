@@ -1,0 +1,52 @@
+services:
+  resource-api:
+    container_name: resource-api
+    image: resource.api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      resource-db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_PATHBASE=/api/resources
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Postgres=Host=resource-db;Port=5432;Database=${POSTGRES_DB:-resource_service};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres};
+      - Authentication__TokenValidationParameters__ValidIssuers__0=${KEYCLOAK_ISSUER:-https://keycloak.vts-platform.ru/realms/organization-bookings}
+      - Authentication__MetadataAddress=${KEYCLOAK_METADATA_ADDRESS:-https://keycloak.vts-platform.ru/realms/organization-bookings/.well-known/openid-configuration}
+      - Authentication__Audience=${AUTH_AUDIENCE:-account}
+      - Authentication__RequireHttpsMetadata=${AUTH_REQUIRE_HTTPS_METADATA:-true}
+      - OrgMembershipService__BaseUrl=${USER_SERVICE_URL:-https://vts-platform.ru/api/users}
+    ports:
+      - '8084:8080'
+    restart: always
+    networks:
+      - booking-network
+
+  resource-db:
+    container_name: resource-db
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-resource_service}
+    ports:
+      - '5436:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ 'CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}' ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - booking-network
+
+volumes:
+  postgres_data:
+
+networks:
+  booking-network:
+    external: true

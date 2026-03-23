@@ -1,0 +1,7 @@
+.git
+.gitignore
+.dotnet
+**/bin
+**/obj
+**/.DS_Store
+**/Properties/launchSettings.json
