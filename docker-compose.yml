@@ -19,7 +19,7 @@ services:
       - Authentication__RequireHttpsMetadata=${AUTH_REQUIRE_HTTPS_METADATA:-true}
       - OrgMembershipService__BaseUrl=${USER_SERVICE_URL:-https://vts-platform.ru/api/users}
     ports:
-      - '8084:8080'
+      - '8086:8080'
     restart: always
     networks:
       - booking-network
